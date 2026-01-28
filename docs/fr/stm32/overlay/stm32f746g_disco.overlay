@@ -1,0 +1,120 @@
+/* boards/stm32f746g_disco.overlay */
+
+/ {
+    aliases {
+        sdmmc0 = &sdmmc1;
+        spi5 = &spi5;
+        motor-enable = &motor_enable_pin;
+        motor-step   = &motor_step_pin;
+        motor-dir    = &motor_dir_pin;
+        btn-rdc = &btn_rdc_pin;
+        btn-1   = &btn_1_pin;
+        btn-2   = &btn_2_pin;
+	limit-switch = &limit_switch_pin;
+    };
+
+    motor_pins {
+        compatible = "gpio-leds";
+        motor_enable_pin: motor_enable_pin {
+            gpios = <&gpioi 0 GPIO_ACTIVE_LOW>;
+            label = "Motor Enable";
+        };
+        motor_step_pin: motor_step_pin {
+            gpios = <&gpioi 3 GPIO_ACTIVE_HIGH>;
+            label = "Motor STEP";
+        };
+        motor_dir_pin: motor_dir_pin {
+            gpios = <&gpioh 6 GPIO_ACTIVE_HIGH>;
+            label = "Motor DIR";
+        };
+	/* AJOUT : Capteur Fin de Course (PG7) */
+	limit_switch_pin: limit_switch_pin {
+            gpios = <&gpiog 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+            label = "Limit Switch";
+        };
+    };
+
+    buttons {
+        compatible = "gpio-keys";
+        btn_rdc_pin: btn_rdc_pin {
+            gpios = <&gpioi 4 GPIO_ACTIVE_LOW>;
+            label = "BTN_RDC";
+            zephyr,code = <10>;
+        };
+        btn_1_pin: btn_1_pin {
+            gpios = <&gpioc 6 GPIO_ACTIVE_LOW>;
+            label = "BTN_1";
+            zephyr,code = <11>;
+        };
+        btn_2_pin: btn_2_pin {
+            gpios = <&gpioc 7 GPIO_ACTIVE_LOW>;
+            label = "BTN_2";
+            zephyr,code = <12>;
+        };
+    };
+};
+
+/* --- Carte SD --- */
+&sdmmc1 {
+    status = "okay";
+    pinctrl-0 = <&sdmmc1_d0_pc8 &sdmmc1_d1_pc9 &sdmmc1_d2_pc10 &sdmmc1_d3_pc11 &sdmmc1_ck_pc12 &sdmmc1_cmd_pd2>;
+    pinctrl-names = "default";
+    bus-width = <4>;
+    cd-gpios = <&gpioi 15 GPIO_ACTIVE_LOW>;
+};
+
+/* --- SPI2 PARTAGÉ : TMC5160 + RC522 --- */
+&spi2 {
+    status = "okay";
+    pinctrl-0 = <&spi2_sck_pi1 &spi2_miso_pb14 &spi2_mosi_pb15>;
+    pinctrl-names = "default";
+    
+    /* Chip Selects (CS) :
+       Index 0 -> PA8  (RC522)
+       Index 1 -> PA15 (TMC5160) <-- AJOUTÉ ICI
+    */
+    cs-gpios = <&gpioa 8 GPIO_ACTIVE_LOW>, <&gpioa 15 GPIO_ACTIVE_LOW>;
+
+    /* Moteur (utilise index 0 -> PA8) */
+    tmc5160: tmc5160@0 {
+        compatible = "vnd,spi-device";
+        reg = <1>;
+        spi-max-frequency = <1000000>;
+        label = "TMC5160";
+    };
+
+    /* RFID (utilise index 1 -> PA15) */
+    rc522: rc522@1 {
+        compatible = "vnd,spi-device";
+        reg = <0>; 
+        spi-max-frequency = <4000000>; 
+        label = "RC522";
+    };
+};
+
+/* --- Ethernet --- */
+&mac { status = "okay"; phy-handle = <&phy0>; };
+&mdio { status = "okay"; phy0: ethernet-phy@0 { reg = <0>; }; };
+
+/* --- SPI5 pour OLED --- */
+&spi5 {
+    status = "okay";
+    pinctrl-0 = <&spi5_sck_pf7 &spi5_mosi_pf9>;
+    pinctrl-names = "default";
+
+    oled: oled@0 {
+        compatible = "vnd,spi-device";
+        reg = <0>;
+        spi-max-frequency = <4000000>;
+        label = "OLED";
+    };
+};
+
+/* Activation des ports GPIO */
+&gpioa { status = "okay"; label = "GPIOA"; };
+&gpioc { status = "okay"; };
+&gpiof { status = "okay"; label = "GPIOF"; };
+&gpiog { status = "okay"; };
+&gpioh { status = "okay"; };
+&gpioi { status = "okay"; };
+&i2c1 { status = "okay"; };
