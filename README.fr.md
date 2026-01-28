@@ -94,44 +94,6 @@ Dans `docs/*/` :
 - `ai-vision/` : pipeline, streaming, modèles, validation
 - `hw/` : BOM haut niveau, puissance/BMS, topologie câblage
 
-## 4) Où ajouter le code source (quand tu es prêt)
-
-On garde une séparation propre : la doc reste dans `docs/`, le code va dans `src/`.
-
-Layout recommandé :
-
-- `src/edge/`  
-  Services passerelle (config broker, bridge, orchestration, dashboard, API)
-
-- `src/fpga/`  
-  Travail FPGA séparé en :
-  - `src/fpga/hw/` : HDL / génération SoC LiteX, périphériques CSR, bitstreams
-  - `src/fpga/sw/` : services/utilitaires Linux côté FPGA
-  - `src/fpga/fw/` : artefacts boot (packaging OpenSBI, images si besoin)
-
-- `src/stm32/`  
-  Projets Zephyr, configs carte, logique appli par nœud (entrée/sortie)
-
-- `src/cloud/`  
-  Backend (sessions, billing, auth, dashboard)
-
-- `src/ai-vision/`  
-  Pipeline vision, packaging modèles, outils évaluation
-
-Recommandé aussi :
-- `scripts/` : scripts build et déploiement (flash, images, provisioning)
-- `configs/` : allowlists topics, mapping IP, configs services
-- `tests/` : tests unitaires hors matériel, tests intégration, outils validation
-
-## 5) Garder cohérence doc ↔ code
-
-- La doc dans `docs/en` et `docs/fr` reste la référence.
-- Mapper chaque sous-système au dossier code correspondant :
-  - `docs/en/fpga/*` ↔ `src/fpga/*`
-  - `docs/en/stm32/*` ↔ `src/stm32/*`
-  - etc.
-- Éviter de dupliquer la même info partout.
-- Mettre les rationales et règles d’intégration dans la doc, pas dans des commentaires code.
 
 ## 6) Lecture recommandée (navigation)
 
