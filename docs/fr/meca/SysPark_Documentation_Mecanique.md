@@ -37,7 +37,7 @@ Le système utilise deux types de supports selon la technologie de vision employ
 Support optimisé pour les caméras à nappe de type **Raspberry Pi** ou **BeagleY-AI**, idéal pour la reconnaissance de plaques en pose fixe.
 
 **Caméra Logitech**  
-Support universel adapté aux webcams USB **Logitech** (C270, C920) pour une surveillance grand angle.
+Support universel adapté aux webcams USB **Logitech** (C170, C920) pour une surveillance grand angle.
 
 ## 🛠 Paramètres d'Impression Recommandés
 
