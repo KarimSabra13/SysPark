@@ -94,45 +94,7 @@ Inside `docs/*/` you will find:
 - `ai-vision/` : pipeline, streaming, models, validation
 - `hw/` : high-level BOM, power and BMS, wiring topology
 
-## 4) Where to add source code (when you are ready)
 
-This repo already has a clean separation for future code.  
-Add code under a dedicated `src/` tree, keeping documentation untouched.
-
-Recommended layout:
-
-- `src/edge/`  
-  Gateway services (MQTT broker configuration, bridge, orchestration, dashboards, APIs)
-
-- `src/fpga/`  
-  FPGA-related work split into:
-  - `src/fpga/hw/` : HDL / LiteX SoC generation, CSR peripherals, bitstreams
-  - `src/fpga/sw/` : Linux-side services and utilities on the FPGA node
-  - `src/fpga/fw/` : boot artifacts generation (OpenSBI packaging, images if needed)
-
-- `src/stm32/`  
-  Zephyr projects, board configs, app logic per node (entry/exit)
-
-- `src/cloud/`  
-  Backend services (sessions, billing, auth, dashboards)
-
-- `src/ai-vision/`  
-  Vision inference pipeline, model packaging, evaluation utilities
-
-Also recommended:
-- `scripts/` : build and deployment scripts (flash, image generation, provisioning)
-- `configs/` : MQTT topics allowlists, network IP maps, service configs
-- `tests/` : non-hardware unit tests, integration tests, validation tools
-
-## 5) How to keep documentation and code consistent
-
-- Keep docs in `docs/en` and `docs/fr` as the authoritative reference.
-- For each subsystem, match doc pages to the code folders:
-  - `docs/en/fpga/*` ↔ `src/fpga/*`
-  - `docs/en/stm32/*` ↔ `src/stm32/*`
-  - etc.
-- Avoid duplicating the same information in multiple places.
-- Put design rationales and integration rules in docs, not in code comments.
 
 ## 6) Getting started (documentation navigation)
 
