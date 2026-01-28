@@ -1,0 +1,332 @@
+Language: English | [Français](../../fr/overview/system-flows.md)
+
+# SysPark System Flows
+
+This document describes the end-to-end operational flows of SysPark, from power-up to normal entry/exit cycles, including vision-assisted decisions, payment, operator overrides, degraded modes, and emergency handling. The goal is to make every subsystem role explicit and to keep boundaries stable: **Edge decides**, **FPGA executes safely**, **STM32 handles local terrain interactions**.
+
+---
+
+## 0) System bring-up and readiness (power-on to operational state)
+
+### Trigger
+- Mains power applied or system starts from backup battery.
+
+### Steps
+1. **Power and safety checks**
+   - 12 V bus stabilizes, DC/DC converters supply logic rails.
+   - BMS validates safe conditions (cell voltages, current limits, temperature).
+   - If BMS detects an unsafe condition, the system stays in a restricted state (no actuation).
+
+2. **Network initialization**
+   - Edge gateway, FPGA node, and STM32 node bring up Ethernet links.
+   - Static or DHCP addressing is applied depending on site configuration.
+
+3. **Local control-plane availability**
+   - The **local MQTT broker** becomes available on the parking LAN.
+   - The system transitions to “local-operational” mode even if internet is not yet available.
+
+4. **Cloud connectivity (optional but preferred)**
+   - The MQTT bridge starts forwarding a *whitelisted* subset of topics to the public broker.
+   - The cloud server connects to the broker and re-enables remote supervision features (dashboard, payments, remote logs).
+
+5. **Subsystem health reporting**
+   - Each subsystem publishes a heartbeat/status (edge, FPGA, STM32, sensors).
+   - Edge consolidates system readiness and sets the initial user-facing messages (display banner).
+
+### Outputs
+- System state transitions to **READY** when:
+  - BMS is OK,
+  - LAN communication is OK,
+  - execution nodes report healthy state.
+
+---
+
+## 1) Entry flow (vehicle arrival → authentication → barrier open → logging)
+
+### Trigger
+- Vehicle presence detected at entry lane (loop sensor, IR sensor, or equivalent).
+
+### Inputs
+- Presence sensor event
+- Optional: camera snapshot / LPR result
+- Authentication: RFID badge and/or PIN (site-dependent)
+
+### Steps
+1. **Arrival detection**
+   - Presence event is published.
+   - Edge updates the local display: “Please identify” or “Welcome”.
+
+2. **Authentication**
+   - **RFID badge path** (typical):
+     - STM32 reads the badge UID and publishes an identification event.
+     - Edge evaluates access based on:
+       - local cached whitelist (offline-capable), and/or
+       - cloud-managed policy (online mode).
+   - **PIN path** (optional):
+     - User enters PIN on the local interface.
+     - STM32 forwards the entered PIN result as an event for validation.
+
+3. **Decision**
+   - Edge decides whether entry is granted:
+     - policy checks (authorized user, time windows, capacity),
+     - anti-passback logic if enabled (prevent “double entry” without exit),
+     - optional coupling with vision confidence (if using LPR as an extra factor).
+
+4. **Execution command**
+   - Edge sends a barrier open request to the execution layer.
+   - The FPGA (or the actuator controller designated as the executor) performs:
+     - deterministic drive sequence,
+     - safety checks (timeouts, motion bounds),
+     - safe-state behavior if anomalies occur.
+
+5. **Barrier open confirmation**
+   - Executor reports: opened / opening / error.
+   - Edge updates display: “Proceed” / “Wait” / “Error, call operator”.
+
+6. **State update and traceability**
+   - Entry event is logged (local and/or cloud):
+     - timestamp, method (RFID/PIN/vision-assisted),
+     - user identifier (masked where needed),
+     - barrier status and any alarms.
+   - Occupancy counters are updated.
+
+### Outputs
+- Barrier opens when authorized.
+- Occupancy increments and session begins (in cloud DB if online).
+
+---
+
+## 2) Exit flow with payment (vehicle arrival → fee calculation → payment → barrier open)
+
+### Trigger
+- Vehicle presence detected at exit lane.
+
+### Inputs
+- Presence sensor event
+- Optional: License Plate Recognition (LPR) result
+- Payment status from the cloud (Stripe or equivalent)
+- Exit PIN (optional fallback), operator override (fallback)
+
+### Steps
+1. **Arrival detection**
+   - Presence event is published.
+   - Display prompts: “Processing exit…” or “Please wait”.
+
+2. **Vehicle identification**
+   - Preferred: LPR provides plate number (+ confidence + timestamp).
+   - Fallbacks:
+     - RFID badge at exit,
+     - exit PIN,
+     - operator-assisted exit (manual override).
+
+3. **Fee computation**
+   - Cloud server computes fee based on session duration, tariffs, and rules.
+   - Cloud emits a payment request event (amount, session reference).
+
+4. **Payment interaction**
+   - User completes payment through the cloud front-end.
+   - Payment confirmation is generated by the payment provider and validated by the cloud (webhook).
+   - Cloud publishes a **payment success** event linked to the session.
+
+5. **Exit authorization**
+   - The exit STM32 node receives “payment success” and unlocks the exit step.
+   - Edge requests barrier opening from the executor.
+
+6. **Execution + confirmation**
+   - Executor opens the barrier with safety enforcement.
+   - System logs:
+     - payment confirmation,
+     - exit timestamp,
+     - barrier state and any warnings.
+
+7. **Occupancy update**
+   - Occupancy decrements.
+   - Session is closed (in cloud DB if online).
+
+### Outputs
+- Barrier opens only after valid authorization (payment success or explicit override).
+- Session is closed and revenue recorded.
+
+---
+
+## 3) Vision-assisted flow (camera → plate detection → OCR → validation → decision support)
+
+### Trigger
+- Vehicle presence or periodic capture policy.
+
+### Inputs
+- Camera frames (local capture)
+- Vision model outputs (plate region, confidence)
+- OCR result
+- Validation rules (country format, allowed characters)
+
+### Steps
+1. **Capture and preprocessing**
+   - Edge acquires frames and prepares them for inference.
+   - Optional cropping or stabilization can be applied.
+
+2. **Plate detection**
+   - Vision model detects candidate plate region(s).
+   - Edge selects the best candidate based on confidence and geometry.
+
+3. **OCR and normalization**
+   - OCR extracts characters.
+   - Edge normalizes the string (cleanup, spacing, casing).
+   - Format validation is applied (e.g., expected pattern constraints).
+
+4. **Publishing results**
+   - Edge publishes:
+     - recognized plate,
+     - confidence,
+     - optional snapshot reference.
+
+5. **Decision integration**
+   - Entry: plate can be used as a second factor, or to pre-fill session identity.
+   - Exit: plate is used to find the active session and compute fees.
+
+### Failure handling
+- If confidence is low or validation fails:
+  - do not block the lane unnecessarily,
+  - fallback to RFID/PIN/operator paths,
+  - keep an “unverified plate” record for later review if needed.
+
+---
+
+## 4) Operator supervision and manual override flow (dashboard → action → audit)
+
+### Trigger
+- Operator opens the dashboard or receives an alert.
+
+### Inputs
+- System telemetry (status, heartbeats, alarms)
+- Live debug stream (maintenance mode)
+- Operator commands (manual barrier open, reset, config updates)
+
+### Steps
+1. **Observation**
+   - Operator sees occupancy, recent events, alarm list, system health.
+   - Optional: view a camera debug stream (secured access).
+
+2. **Manual command**
+   - Operator issues a command (e.g., open barrier, stop elevator, clear fault).
+   - Command is authorized and logged (who/when/why).
+
+3. **Execution**
+   - Edge forwards the override request to the executor.
+   - Executor performs action with safety limits.
+
+4. **Audit trail**
+   - Cloud stores the override event:
+     - operator identity (or admin account),
+     - reason (optional),
+     - result and timing.
+
+### Outputs
+- Safe manual recovery path without bypassing the safety layer.
+
+---
+
+## 5) Configuration and access list management (cloud policy → edge → STM32 persistence)
+
+### Trigger
+- Admin updates authorized users, PINs, tariffs, or operational parameters.
+
+### Inputs
+- Admin action in the web interface
+- Configuration payload (ACL list updates, PIN change, policy toggles)
+
+### Steps
+1. **Cloud publishes the update**
+   - Changes are published as configuration events.
+
+2. **Edge enforces boundaries**
+   - Edge forwards only allowed configuration families to local systems.
+   - Sensitive updates can require stronger authentication rules.
+
+3. **STM32 applies and persists**
+   - STM32 updates local stored configuration (e.g., whitelist, PINs) on SD storage.
+   - STM32 republishes a “sync OK” status so the cloud knows it is applied.
+
+### Outputs
+- Offline-capable access control (cached whitelist / PINs).
+- Clear “who changed what and when” traceability.
+
+---
+
+## 6) Degraded modes (internet down, broker down, subsystem fault)
+
+SysPark is designed to keep the parking usable under partial failures.
+
+### A) Internet down (cloud unreachable)
+- Local broker continues functioning.
+- Edge keeps basic entry/exit working with cached policies.
+- Payments may be disabled or replaced by:
+  - RFID-only exit for trusted users,
+  - exit PIN,
+  - operator override,
+  depending on site policy.
+
+### B) Cloud reachable but local execution node fault
+- If an executor reports fault:
+  - edge blocks automatic commands,
+  - displays a clear user message,
+  - notifies operator,
+  - allows only manual recovery actions if safe.
+
+### C) Vision degraded
+- Vision failures should not block the lane:
+  - revert to RFID/PIN,
+  - store diagnostic markers for later tuning.
+
+### D) Local broker down
+- System can switch to a direct control-plane fallback if defined:
+  - edge can attempt direct communication to executors,
+  - or system can enter restricted state until broker returns.
+- Recommended: keep broker as a supervised service with auto-restart.
+
+---
+
+## 7) Safety and emergency flow (obstruction, timeouts, fire alert)
+
+### Trigger examples
+- Obstruction detected while barrier closing.
+- Movement timeout or inconsistent state.
+- Fire alert signal received through an independent channel.
+
+### Core safety rules
+1. **Stop and safe state first**
+   - executor stops motion and transitions to a safe state if:
+     - obstruction is detected,
+     - motion exceeds time window,
+     - state becomes inconsistent.
+
+2. **Clear operator messaging**
+   - display: “Obstacle detected, please clear area” or “Call operator”.
+
+3. **Alarm propagation**
+   - alarm events are published locally and (if possible) forwarded to cloud.
+   - operator is notified.
+
+4. **Emergency policy**
+   - for fire alert: apply the site-defined emergency policy, typically:
+     - stop non-essential motion,
+     - enable free exit or open barriers if safe and required,
+     - keep logging for after-action review.
+
+### Outputs
+- Safety always overrides convenience.
+- Emergency handling remains operational even if the main IP network is compromised.
+
+---
+
+## 8) What is logged (traceability baseline)
+
+For each session and critical event, SysPark targets a consistent trace set:
+
+- timestamps (entry, exit, payment success),
+- authentication method (RFID, PIN, vision-assisted, override),
+- system states and executor outcomes,
+- alarms and recovery actions,
+- operator actions with audit trail (when applicable).
+
+This makes the system reviewable, debuggable, and demonstrable in an engineering context.
