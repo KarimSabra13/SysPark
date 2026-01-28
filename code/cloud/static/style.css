@@ -1,0 +1,998 @@
+/* Style global */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f5f7fa;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* En-tête */
+header {
+    background-color: #ffffff;
+    width: 100%;
+    padding: 20px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 2000;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #2d3e50;
+}
+
+/* Grille principale */
+.dashboard {
+    display: flex;             /* On passe en Flex pour gérer les colonnes */
+    flex-direction: row;       /* Alignement horizontal des 2 grandes colonnes */
+    flex-wrap: wrap;           /* Permet de passer à la ligne sur mobile */
+    justify-content: center;   /* Centre le tout */
+    align-items: flex-start;   /* Important : aligne en haut, évite d'étirer */
+    gap: 25px;                 /* Espace entre les deux colonnes */
+    width: 100%;               /* ✅ On remet 100% (110% cause des bugs de scroll) */
+    max-width: 1200px;         /* Limite la largeur sur grands écrans */
+    padding: 40px 20px;        /* Un peu de marge sur les côtés */
+    box-sizing: border-box;    /* S'assure que le padding ne casse pas la largeur */
+}
+
+/* === Les Colonnes verticales === */
+.dash-col {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;                 /* Espace vertical entre les cartes */
+    flex: 1;                   /* Chaque colonne prend 50% de l'espace */
+    min-width: 300px;          /* Largeur minimum avant de passer en mobile */
+    max-width: 600px;          /* Évite que les cartes soient trop larges */
+}
+
+/* Cartes */
+.card {
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+    margin: 0 0 15px 0;
+    font-size: 1.3rem;
+}
+
+/* Couleurs par section */
+.energie {
+    background: linear-gradient(135deg, #ff69b4, #ff7de9);
+}
+
+.camera {
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+}
+
+/* === Contrôle à distance — refonte visuelle === */
+.controle {
+    background: linear-gradient(135deg, #00e676, #00b894);
+    align-items: stretch;
+    width: 100%;
+}
+
+.controle-section {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.controle-zone {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 20px 24px;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.15);
+    transition: all 0.2s ease-in-out;
+}
+
+.controle-zone:hover {
+    background-color: rgba(255, 255, 255, 0.22);
+}
+
+.controle-zone h3 {
+    font-size: 1.2em;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+/* Groupe de boutons */
+.btn-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-action,
+.btn-etage {
+    background: rgba(255, 255, 255, 0.92);
+    color: #2d3e50;
+    border: none;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.btn-action:hover,
+.btn-etage:hover {
+    background: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* Couleurs spécifiques */
+.btn-action:first-child {
+    background: #4caf50;
+    color: white;
+}
+.btn-action:last-child {
+    background: #e74c3c;
+    color: white;
+}
+.btn-action:first-child:hover {
+    background: #43a047;
+}
+.btn-action:last-child:hover {
+    background: #c0392b;
+}
+
+/* État ascenseur */
+.etat-ascenseur {
+    margin-top: 15px;
+    font-size: 1em;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    padding: 8px 12px;
+    color: white;
+    font-weight: 500;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.15);
+}
+
+.etat-ascenseur strong {
+    font-weight: 700;
+    color: #fff;
+    margin-left: 5px;
+}
+
+
+/* === Carte affichage / météo === */
+.affichage {
+    background: linear-gradient(135deg, #ff8c00, #ffb347);
+    max-height: none;
+    height: auto; /* ✅ auto-ajustement de la hauteur */
+    align-items: stretch;
+    overflow: visible; /* ✅ pas de coupure ni débordement */
+}
+
+/* Bloc météo */
+.meteo-section {
+    margin-top: 1em;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 18px 22px;
+    text-align: left;
+    font-size: 1em;
+    line-height: 1.6;
+    overflow-y: auto; /* ✅ ajoute une scroll bar douce si trop long */
+    max-height: 340px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.meteo-section h2 {
+    margin-top: 0;
+    font-size: 1.3em;
+    color: #00bfff;
+}
+
+.meteo-section p {
+    margin: 6px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+/* === Carte Sessions parking === */
+.parking {
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+    align-items: stretch;
+    width: 100%;
+}
+
+.parking-table-wrapper {
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.14);
+    border-radius: 16px;
+    padding: 12px;
+    max-height: 340px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.parking-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.parking-table th,
+.parking-table td {
+    padding: 6px 8px;
+    text-align: left;
+}
+
+.parking-table th {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+    font-weight: 700;
+}
+
+.parking-table tbody tr:nth-child(odd) {
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+.parking-table tbody tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.parking-table td:last-child {
+    font-weight: 700;
+}
+
+
+
+/* Responsive */
+@media (max-width: 800px) {
+    .dashboard {
+        flex-direction: column;
+        width: 100%;
+        padding: 20px;
+    }
+    .dash-col {
+        min-width: 0;
+    }
+}
+
+/* === Page de connexion === */
+.login-body {
+    background: #e9eef4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-container {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    width: 350px;
+    text-align: center;
+}
+
+.login-container h1 {
+    margin-bottom: 25px;
+    color: #2d3e50;
+}
+
+.login-container input {
+    width: 90%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.login-container button {
+    width: 95%;
+    padding: 10px;
+    background-color: #007bff;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.login-container button:hover {
+    background-color: #0056b3;
+}
+
+.error {
+    color: red;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+}
+
+/* === Correctif carte caméra === */
+
+/* Empêche la carte de déborder du layout principal */
+.card.camera {
+    width: 100%;
+    box-sizing: border-box;
+    /* On garde overflow hidden pour les bords arrondis, 
+       mais on s'assure que le contenu a de la place */
+    overflow: visible; 
+}
+
+/* Grille plus fluide et auto-ajustée */
+.camera .camera-grid {
+    display: grid;
+    /* On force une taille minimum de 200px pour éviter l'effondrement */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    width: 100%;
+}
+
+/* Évite que les tuiles collent aux bords du conteneur */
+.camera-tile {
+    width: 100%;
+    max-width: 320px; /* ✅ largeur raisonnable pour éviter l’étalement */
+}
+
+/* Taille des aperçus vidéo ajustée au ratio */
+.camera-img {
+    width: 100%;
+    height: auto;
+    display: block;            /* Supprime les petits espaces fantômes sous l'image */
+    background-color: #000;    /* Fond noir si l'image charge mal */
+    aspect-ratio: 16/9;        /* ✅ Force la hauteur même si l'image n'est pas chargée */
+}
+
+.video-wrapper {
+    width: 100%;
+    pointer-events: none !important;
+}
+
+.video-wrapper video {
+    pointer-events: none !important;
+}
+
+
+/* Centre tout sur mobile */
+@media (max-width: 800px) {
+    .camera .camera-grid {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+}
+
+/* Ajoutez ceci à la fin de style.css */
+.camera-frame {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 16/9;
+    border: none;       /* Enlève le bord moche des iframes */
+    overflow: hidden;   /* Cache les barres de défilement */
+    pointer-events: none; /* Empêche de cliquer dans la vidéo */
+    display: block;
+    background-color: #000;
+    border-radius: 12px; /* Garde vos coins arrondis */
+}
+
+/* === CORRECTIF FINAL ZOOM === */
+
+/* === CORRECTIF FINAL ZOOM (Version IMG) === */
+
+.camera-tile.zoomed {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    z-index: 99999 !important;
+    background-color: #000;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+}
+
+/* Cache le titre en plein écran */
+.camera-tile.zoomed .camera-label {
+    display: none !important;
+}
+
+/* Le wrapper prend tout l'écran */
+.camera-tile.zoomed .video-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+}
+
+/* L'IMAGE s'étire enfin pour remplir l'écran */
+.camera-tile.zoomed img.camera-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important; /* L'image garde ses proportions sans être déformée */
+    aspect-ratio: unset !important; /* On libère le ratio pour le plein écran */
+    border-radius: 0 !important;
+}
+
+/* Curseur de fermeture */
+.camera-tile.zoomed .click-zone {
+    cursor: zoom-out !important;
+}
+
+
+/* === Bouton de déconnexion === */
+.logout-btn {
+    position: absolute;
+    right: 25px;
+    top: 25px;
+    background-color: #e74c3c;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+
+.logout-btn:hover {
+    background-color: #c0392b;
+}
+
+/* === CORRECTIF CRITIQUE POUR LE ZOOM === */
+/* Force la réactivation de la souris sur la zone transparente */
+.click-zone {
+    pointer-events: auto !important;
+}
+
+/* On interdit à la carte caméra de bouger, sinon le zoom reste coincé dedans */
+.card.camera, 
+.card.camera:hover {
+    transform: none !important;
+    transition: none !important;
+    /* On garde l'overflow visible pour que le zoom puisse sortir */
+    overflow: visible !important; 
+    z-index: 1000; /* S'assure qu'elle est au-dessus du reste */
+}
+
+/* === CONTRÔLES CAMÉRA (JOYSTICK) === */
+
+/* Par défaut : on cache les contrôles */
+.cam-controls {
+    display: none;
+}
+
+/* QUAND ZOOMÉ : on affiche les contrôles en bas à gauche */
+.camera-tile.zoomed .cam-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    bottom: 30px;        /* Marge du bas */
+    left: 30px;          /* Marge de gauche */
+    z-index: 100000;     /* Au-dessus de tout (même du click-zone) */
+    gap: 5px;
+    background: rgba(0, 0, 0, 0.3); /* Petit fond discret optionnel */
+    padding: 10px;
+    border-radius: 50%;  /* Forme arrondie globale */
+    backdrop-filter: blur(2px);
+}
+
+.pad-row {
+    display: flex;
+    gap: 5px;
+}
+
+/* Style des boutons flèches */
+.cam-controls button {
+    width: 50px;
+    height: 50px;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    font-size: 1.2rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.1s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Important : permet de cliquer sur le bouton */
+    pointer-events: auto; 
+}
+
+.cam-controls button:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(1.1);
+}
+
+.cam-controls button:active {
+    background: #00c6ff; /* Bleu néon au clic */
+    transform: scale(0.95);
+    border-color: #fff;
+}
+
+/* === AJOUT POUR CACHER LE HEADER EN PLEIN ÉCRAN === */
+body.mode-plein-ecran header {
+    display: none !important;
+}
+
+/* Optionnel : on s'assure que le body ne scrolle pas quand on est zoomé */
+body.mode-plein-ecran {
+    overflow: hidden;
+}
+
+/* === Boutons d'action Tableau Parking === */
+
+/* Bouton Rouge : Supprimer (Erreur) */
+.btn-delete {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    margin-right: 5px; /* Espace entre les deux boutons */
+}
+
+.btn-delete:hover {
+    background-color: #cc0000;
+    transform: scale(1.05);
+}
+
+/* Bouton Orange : Terminer (Démo / Force) */
+.btn-finish {
+    background-color: #ff9800; /* Orange visible */
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-finish:hover {
+    background-color: #e68900;
+    transform: scale(1.05);
+}
+
+/* =========================================
+   STYLE OVERLAY PLAQUE (V2 - Bas Droite / Haut Gauche)
+   ========================================= */
+
+/* --- 1. CONFIGURATION PAR DÉFAUT (DASHBOARD) --- */
+/* Position : BAS À DROITE */
+.plate-overlay {
+    position: absolute;
+    bottom: 8px;  /* Collé en bas */
+    right: 8px;   /* Collé à droite */
+    top: auto;    /* On désactive le haut */
+    left: auto;   /* On désactive la gauche */
+    
+    background: rgba(0, 0, 0, 0.4); /* Semi-transparent */
+    color: white;
+    padding: 6px 10px;
+    border-radius: 8px;
+    z-index: 20;
+    max-width: 140px;
+    text-align: right;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    backdrop-filter: blur(2px);
+}
+
+/* Titre "Dernière :" */
+.plate-label {
+    font-size: 0.7em;
+    color: #ddd;
+    margin-bottom: 2px;
+    font-weight: 500;
+}
+
+/* Numéro de plaque */
+.plate-number {
+    font-weight: 800;
+    font-size: 1.1em;
+    color: #fff;
+    text-shadow: 0 1px 3px black;
+    letter-spacing: 1px;
+}
+
+/* Image masquée par défaut */
+.plate-img {
+    display: none; 
+    width: 100%;
+    margin-top: 5px;
+    border: 2px solid #fff;
+    border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+}
+
+/* --- 2. INTERACTION SURVOL (SOURIS) --- */
+/* Au passage de la souris, on opacifie et on agrandit */
+.camera-tile:hover .plate-overlay {
+    background: rgba(0, 0, 0, 0.9);
+    max-width: 200px;
+    z-index: 50;
+    bottom: 8px; /* Reste en bas */
+    right: 8px;  /* Reste à droite */
+}
+
+.camera-tile:hover .plate-img {
+    display: block; /* L'image apparaît */
+}
+
+/* --- 3. MODE PLEIN ÉCRAN (ZOOMED) --- */
+/* Position : HAUT À GAUCHE */
+.camera-tile.zoomed .plate-overlay {
+    background: rgba(0, 0, 0, 0.85);
+    
+    /* On inverse la position */
+    top: 30px;    /* En haut */
+    left: 30px;   /* À gauche */
+    bottom: auto; /* On libère le bas */
+    right: auto;  /* On libère la droite */
+    
+    max-width: 320px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,0.2);
+    text-align: left; /* Texte aligné à gauche en plein écran */
+}
+
+.camera-tile.zoomed .plate-label { 
+    font-size: 1.1em; 
+}
+
+.camera-tile.zoomed .plate-number { 
+    font-size: 2.5em; 
+    margin-bottom: 10px;
+}
+
+.camera-tile.zoomed .plate-img { 
+    display: block; /* Toujours visible en grand */
+    margin-top: 15px;
+}
+
+
+
+/* =========================
+   B2B Quote (Public)
+   ========================= */
+.b2b-body {
+  background: #f5f7fa;
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.b2b-header {
+  background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 2500;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.b2b-header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.b2b-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.b2b-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: white;
+  font-size: 20px;
+}
+
+.b2b-brand-title {
+  font-weight: 800;
+  color: #2d3e50;
+  line-height: 1.1;
+}
+
+.b2b-brand-sub {
+  font-size: 0.9rem;
+  color: #6b7b8c;
+}
+
+.b2b-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.b2b-link {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: 700;
+}
+
+.b2b-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 22px 18px;
+  box-sizing: border-box;
+}
+
+.b2b-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.9fr;
+  gap: 18px;
+}
+
+.b2b-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.07);
+  padding: 18px;
+  box-sizing: border-box;
+}
+
+.b2b-card h2 {
+  margin: 0 0 12px 0;
+  color: #2d3e50;
+  font-size: 1.15rem;
+}
+
+.b2b-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.b2b-field label {
+  display: block;
+  font-weight: 700;
+  color: #2d3e50;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+
+.b2b-field input,
+.b2b-field select {
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 1px solid #d6dee7;
+  outline: none;
+  font-size: 1rem;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.b2b-field input:focus,
+.b2b-field select:focus {
+  border-color: #007bff;
+}
+
+.b2b-hint {
+  margin-top: 6px;
+  color: #6b7b8c;
+  font-size: 0.85rem;
+}
+
+.b2b-sep {
+  height: 1px;
+  background: #edf2f7;
+  margin: 14px 0;
+}
+
+.b2b-btn {
+  grid-column: 1 / span 1;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 12px;
+  background: #007bff;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.b2b-btn:hover { background: #0056b3; }
+
+.b2b-btn-secondary {
+  grid-column: 2 / span 1;
+  padding: 12px 14px;
+  border: 1px solid #d6dee7;
+  border-radius: 12px;
+  background: #fff;
+  color: #2d3e50;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.b2b-btn-secondary:hover { background: #f5f7fa; }
+
+.b2b-note {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #6b7b8c;
+}
+
+.b2b-sticky {
+  position: sticky;
+  top: 86px;
+  height: fit-content;
+}
+
+.b2b-status {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f5f7fa;
+  color: #2d3e50;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.b2b-kpis {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.b2b-kpi {
+  background: #f5f7fa;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.b2b-kpi-label {
+  color: #6b7b8c;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.b2b-kpi-value {
+  margin-top: 6px;
+  color: #2d3e50;
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+
+.b2b-breakdown h3 {
+  margin: 16px 0 10px 0;
+  color: #2d3e50;
+  font-size: 1.05rem;
+}
+
+.b2b-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.b2b-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f5f7fa;
+  color: #2d3e50;
+}
+
+.b2b-strong { font-weight: 900; }
+
+.b2b-assumptions {
+  margin-top: 14px;
+  color: #2d3e50;
+}
+
+.b2b-assumptions summary {
+  cursor: pointer;
+  font-weight: 800;
+  padding: 8px 0;
+}
+
+/* Login CTA */
+.login-divider {
+  margin: 18px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #9aa7b5;
+  font-weight: 700;
+  justify-content: center;
+}
+.login-divider:before,
+.login-divider:after {
+  content: "";
+  height: 1px;
+  width: 100%;
+  background: #e6edf5;
+}
+.b2b-cta {
+  display: block;
+  text-decoration: none;
+  margin-top: 6px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #e6edf5;
+  background: #f7fbff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.b2b-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+}
+.b2b-cta-title {
+  color: #2d3e50;
+  font-weight: 900;
+}
+.b2b-cta-sub {
+  margin-top: 6px;
+  color: #6b7b8c;
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+.b2b-cta-btn {
+  margin-top: 10px;
+  font-weight: 900;
+  color: #007bff;
+}
+
+/* Responsive */
+@media (max-width: 980px) {
+  .b2b-grid { grid-template-columns: 1fr; }
+  .b2b-sticky { position: static; }
+  .b2b-row { grid-template-columns: 1fr; }
+}
+

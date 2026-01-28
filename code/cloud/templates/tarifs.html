@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuration des Tarifs</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+      /* Petit style supplémentaire pour le formulaire pour qu'il soit propre */
+      .form-group { margin-bottom: 15px; text-align: left; }
+      .form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
+      .form-group input { 
+          width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; 
+      }
+      .form-text { font-size: 0.85em; color: #666; margin-top: 5px; }
+      .btn-save {
+          width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; 
+          border-radius: 8px; font-size: 1.1em; cursor: pointer; margin-top: 10px;
+      }
+      .btn-save:hover { background-color: #218838; }
+      .alert { padding: 10px; border-radius: 5px; margin-bottom: 15px; }
+      .alert.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+      .alert.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+      .simulation-box { background: #e2e3e5; padding: 15px; border-radius: 8px; margin-top: 20px; color: #383d41; }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>💰 Configuration des Tarifs</h1>
+    <div style="margin-top: 1em;">
+        <a href="{{ url_for('dashboard') }}" style="padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 8px; text-decoration: none;">
+            ⬅️ Retour Dashboard
+        </a>
+    </div>
+  </header>
+
+  <main class="dashboard" style="display: flex; justify-content: center;">
+    <div class="card" style="max-width: 600px; width: 100%; padding: 20px;">
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label>⏳ Minutes Gratuites (au début)</label>
+                <input type="number" name="free_minutes" value="{{ p.free_minutes }}" min="0">
+                <div class="form-text">Temps offert avant que la facturation ne commence.</div>
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>💶 Prix par tranche (€)</label>
+                    <input type="number" step="0.10" name="price_per_chunk" value="{{ p.price_per_chunk }}" min="0">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>⏱️ Durée tranche (min)</label>
+                    <input type="number" name="chunk_minutes" value="{{ p.chunk_minutes }}" min="1">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>🛑 Plafond Journalier (€)</label>
+                <input type="number" step="0.5" name="daily_max" value="{{ p.daily_max }}" min="0">
+                <div class="form-text">Montant maximum facturé par tranche de 24h.</div>
+            </div>
+
+            <button type="submit" class="btn-save">💾 Enregistrer les Tarifs</button>
+        </form>
+
+        <div class="simulation-box">
+            <strong>📊 Simulation actuelle :</strong><br>
+            Une heure de stationnement coûtera : <br>
+            - <strong>{{ p.free_minutes }} min</strong> gratuites<br>
+            - Puis facturé par tranches de <strong>{{ p.chunk_minutes }} min</strong> à <strong>{{ p.price_per_chunk }}€</strong><br>
+            <em>(Maximum {{ p.daily_max }}€ par jour)</em>
+        </div>
+
+    </div>
+  </main>
+</body>
+</html>

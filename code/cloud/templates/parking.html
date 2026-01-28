@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sessions parking</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+  <header>
+    <h1>Sessions parking</h1>
+
+    <div style="margin-top: 1em; text-align: center;">
+      <a href="{{ url_for('dashboard') }}"
+         style="padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 8px; text-decoration: none; margin-right: 10px;">
+         Retour au tableau de bord
+      </a>
+
+      <a href="{{ url_for('manage_badges') }}"
+         style="padding: 10px 20px; background-color: #007bff; color: white; border-radius: 8px; text-decoration: none;">
+         🪪 Gérer les badges
+      </a>
+    </div>
+
+    <a href="{{ url_for('logout') }}" class="logout-btn">Se déconnecter</a>
+  </header>
+
+  <main class="dashboard">
+    <div class="card parking">
+      <h2>Véhicules actuellement dans le parking</h2>
+      <div class="parking-table-wrapper">
+        {% if sessions_active and sessions_active|length > 0 %}
+          <table class="parking-table">
+            <thead>
+              <tr>
+                <th>Plaque</th>
+                <th>Source</th>
+                <th>Entrée</th>
+                <th>Durée en cours</th>
+                <th style="text-align: center;">Action</th> </tr>
+            </thead>
+            <tbody>
+              {% for s in sessions_active %}
+                <tr>
+                  <td>{{ s.plate or "-" }}</td>
+                  <td>{{ s.source }}</td>
+                  <td>{{ s.opened }}</td>
+                  <td>{{ s.duration }}</td>
+                  <td style="text-align: center; white-space: nowrap;">
+    <button class="btn-delete" onclick="deleteSession('{{ s.id }}')" title="Supprimer sans historique">
+        🗑️
+    </button>
+
+    <button class="btn-finish" onclick="finishSession('{{ s.id }}')" title="Simuler paiement et sortie">
+        🏁 Terminer
+    </button>
+</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p style="opacity:0.7;">Aucun véhicule actuellement dans le parking.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card parking">
+      <h2>Dernières sessions terminées</h2>
+      <div class="parking-table-wrapper">
+        {% if sessions_finished and sessions_finished|length > 0 %}
+          <table class="parking-table">
+            <thead>
+              <tr>
+                <th>Plaque</th>
+                <th>Source</th>
+                <th>Entrée</th>
+                <th>Sortie</th>
+                <th>Durée</th>
+                <th>Prix</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in sessions_finished %}
+                <tr>
+                  <td>{{ s.plate or "-" }}</td>
+                  <td>{{ s.source }}</td>
+                  <td>{{ s.opened }}</td>
+                  <td>{{ s.closed }}</td>
+                  <td>{{ s.duration }}</td>
+                  <td>{{ s.price }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p style="opacity:0.7;">Aucune session terminée pour le moment.</p>
+        {% endif %}
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // 1. SUPPRIMER (En cas d'erreur OCR)
+    async function deleteSession(id) {
+      if (!confirm("⚠️ SUPPRESSION DÉFINITIVE\n\nCe véhicule sera effacé sans être enregistré dans l'historique.\nUtilisez ceci uniquement en cas d'erreur de lecture.\n\nContinuer ?")) {
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/delete_session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id })
+        });
+        const data = await response.json();
+        if (data.status === 'ok') location.reload();
+        else alert("Erreur : " + (data.message || "Echec"));
+      } catch (err) {
+        alert("Erreur réseau");
+      }
+    }
+
+    // 2. TERMINER (Démo : Simule paiement et sortie)
+    async function finishSession(id) {
+      if (!confirm("🏁 SORTIE MANUELLE\n\nCela va :\n1. Simuler le paiement (gratuit)\n2. Ouvrir la barrière\n3. Enregistrer la session dans l'historique\n\nConfirmer ?")) {
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/force_finish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id })
+        });
+        const data = await response.json();
+        if (data.status === 'ok') location.reload();
+        else alert("Erreur : " + (data.message || "Echec"));
+      } catch (err) {
+        alert("Erreur réseau");
+      }
+    }
+</script>
+</body>
+</html>

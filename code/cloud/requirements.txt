@@ -1,0 +1,12 @@
+Flask
+paho-mqtt
+gunicorn
+requests
+opencv-python
+stripe
+pytz
+Flask-SQLAlchemy
+psycopg2-binary
+Flask-SocketIO
+gevent
+gevent-websocket

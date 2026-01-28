@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestion des Badges & Codes</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+   
+  <style>
+    body { background-color: #f4f6f9 !important; color: #333 !important; font-family: system-ui, -apple-system, sans-serif; }
+    h1 { color: #2c3e50; margin-bottom: 20px; }
+    .card { background: #ffffff !important; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 25px; margin-bottom: 20px; color: #333 !important; }
+    .card h3 { color: #444 !important; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; font-size: 1.2em; }
+    input[type="text"], input[type="number"], textarea { background: #fff; color: #333; border: 1px solid #ccc; padding: 10px; border-radius: 6px; font-size: 1em; }
+    a.btn-back { display: inline-block; padding: 10px 20px; background-color: #6c757d; color: white !important; border-radius: 8px; text-decoration: none; font-weight: bold; transition: 0.2s; }
+    a.btn-back:hover { background-color: #5a6268; }
+    .plate-tag { display: inline-block; background: #e3f2fd; color: #0d47a1; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; margin-left: 10px; border: 1px solid #bbdefb; }
+  </style>
+</head>
+<body>
+
+<header style="text-align: center; padding: 20px;">
+  <h1>🪪 Gestion des Accès (Badges & Codes)</h1>
+  <div style="margin-top: 1em;">
+    <a href="{{ url_for('dashboard') }}" class="btn-back">⬅️ Retour au tableau de bord</a>
+  </div>
+</header>
+
+<main class="dashboard" style="display: flex; flex-direction: column; align-items: center; gap: 20px; max-width: 800px; margin: 0 auto;">
+
+  <div class="card" style="width: 100%; background: linear-gradient(135deg, #e0f7fa, #b2ebf2) !important; border-left: 5px solid #00bcd4;">
+    <h3 style="color: #006064 !important; border-bottom-color: #80deea;">🔑 Codes PIN du Parking</h3>
+    
+    <div style="margin-bottom: 15px;">
+        <label style="font-weight:bold; color:#006064; display:block;">Code ENTRÉE :</label>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="number" id="pin_entry_input" placeholder="ex: 1234" 
+                   style="padding: 10px; border-radius: 5px; border: 1px solid #00acc1; width: 150px; text-align: center; font-size: 1.2em; font-weight: bold; color: #006064;">
+            <button onclick="updatePin('entry')" 
+                    style="padding: 10px 20px; background-color: #00bcd4; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                Mettre à jour
+            </button>
+        </div>
+    </div>
+
+    <div>
+        <label style="font-weight:bold; color:#d84315; display:block;">Code SORTIE :</label>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="number" id="exit_pin_input" placeholder="ex: 0000" 
+                   style="padding: 10px; border-radius: 5px; border: 1px solid #ff7043; width: 150px; text-align: center; font-size: 1.2em; font-weight: bold; color: #d84315;">
+            <button onclick="updatePin('exit')" 
+                    style="padding: 10px 20px; background-color: #ff7043; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                Mettre à jour
+            </button>
+        </div>
+    </div>
+
+    <p id="pin_status" style="margin-top: 15px; font-size: 0.9em; font-weight:bold; min-height: 20px; text-align: center; background: rgba(255,255,255,0.5); padding: 5px; border-radius: 4px;"></p>
+  </div>
+
+  <div class="card" style="width: 100%;">
+    <h3>Ajouter un nouveau badge</h3>
+    
+    <div style="text-align: center; margin-bottom: 15px;">
+        <button type="button" onclick="startScanMode()" id="btn-scan"
+                style="background-color: #6f42c1; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 auto;">
+            <span>📡</span> <span id="scan-text">Scanner un badge inconnu</span>
+        </button>
+    </div>
+
+    <form method="POST" action="{{ url_for('manage_badges') }}" style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+      <input type="hidden" name="action" value="add">
+      <input type="text" id="input-uid" name="uid" placeholder="UID Badge (ex: 1A2B3C4D)" required style="flex: 1; min-width: 200px;">
+      <input type="text" name="plate" placeholder="Plaque (ex: AA-123-BB)" style="flex: 1; min-width: 200px;">
+      <button type="submit" style="background-color: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">Ajouter</button>
+    </form>
+  </div>
+
+  <div class="card" style="width: 100%;">
+    <h3>Badges Autorisés (Sur Carte SD)</h3>
+    <div id="badge-list-container">
+        <p style="text-align: center; color: #888; font-style: italic;">Chargement des données...</p>
+    </div>
+  </div>
+   
+  <div class="card" style="width: 100%; opacity: 0.9;">
+    <h3 style="color: #d32f2f !important; border-color: #fadbd8;">Zone Danger : Reset Total</h3>
+    <form method="POST" action="{{ url_for('manage_badges') }}">
+        <input type="hidden" name="action" value="full">
+        <textarea name="bulk" rows="3" placeholder="Coller une liste d'UIDs ici pour tout remplacer..." style="width: 100%; margin-bottom: 10px;"></textarea>
+        <button type="submit" style="background-color: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold;">⚠️ Remplacer toute la liste</button>
+    </form>
+  </div>
+
+</main>
+
+<script>
+    let userIsTyping = false;
+
+    // 👇👇👇 CORRECTION ICI : FORCE WEBSOCKET DIRECT 👇👇👇
+    const socket = io({
+        transports: ['websocket'], // Force WebSocket sans passer par HTTP Polling
+        upgrade: false,            // Désactive la mise à niveau (on est déjà en WS)
+        reconnection: true,
+        reconnectionAttempts: 10,
+        reconnectionDelay: 1000
+    });
+
+    socket.on('connect', () => {
+        console.log("✅ WebSocket connecté avec succès !");
+    });
+
+    socket.on('connect_error', (err) => {
+        console.warn("⚠️ Erreur WebSocket (Render peut bloquer si pas https) :", err);
+    });
+    // 👆👆👆 FIN CORRECTION 👆👆👆
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => { userIsTyping = true; });
+            input.addEventListener('blur', () => { userIsTyping = false; });
+        });
+    });
+
+    // --- MODE ENRÔLEMENT (SCAN) ---
+    async function startScanMode() {
+        const btn = document.getElementById("btn-scan");
+        const txt = document.getElementById("scan-text");
+        btn.style.backgroundColor = "#ffc107"; btn.style.color = "#000";
+        txt.textContent = "Approchez le badge de la borne...";
+        try { await fetch('/api/enroll/start', { method: 'POST' }); }
+        catch (e) { console.error(e); resetBtn(); }
+    }
+
+    function resetBtn() {
+        const btn = document.getElementById("btn-scan");
+        const txt = document.getElementById("scan-text");
+        btn.style.backgroundColor = "#6f42c1"; btn.style.color = "#fff";
+        txt.textContent = "Scanner un badge inconnu";
+    }
+
+    socket.on('enroll_event', (data) => {
+        console.log("Badge scanné !", data.uid);
+        const input = document.getElementById("input-uid");
+        input.value = data.uid;
+        input.style.backgroundColor = "#d4edda";
+        setTimeout(() => { input.style.backgroundColor = "#fff"; }, 1000);
+        resetBtn();
+    });
+
+    // --- PIN & REFRESH ---
+    async function updatePin(type) {
+        const inputId = type === 'entry' ? "pin_entry_input" : "exit_pin_input";
+        const pin = document.getElementById(inputId).value;
+        const statusEl = document.getElementById("pin_status");
+        
+        if (!pin) return;
+        statusEl.textContent = "⏳ Envoi...";
+        
+        try {
+            const res = await fetch('/api/config/pin', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ pin: pin, type: type })
+            });
+            const data = await res.json();
+            if (data.status === "ok") {
+                statusEl.textContent = "✅ " + data.message; statusEl.style.color = "#2e7d32";
+                document.getElementById(inputId).value = "";
+            } else { 
+                statusEl.textContent = "❌ " + data.message; statusEl.style.color = "#c62828"; 
+            }
+        } catch (e) { statusEl.textContent = "❌ Erreur réseau"; statusEl.style.color = "#c62828"; }
+    }
+
+    async function refreshBadges() {
+        if (userIsTyping) return;
+        try {
+            const response = await fetch('/api/badges');
+            const badges = await response.json(); 
+            const container = document.getElementById('badge-list-container');
+            if (badges.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #dc3545;">Aucun badge actif.</p>';
+            } else {
+                let html = '<ul style="list-style: none; padding: 0;">';
+                badges.forEach(item => {
+                    let plateDisplay = item.plate ? `<span class="plate-tag">🚗 ${item.plate}</span>` : '';
+                    html += `<li style="background: #f8f9fa; border: 1px solid #e9ecef; margin: 8px 0; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; color: #333;">
+                        <div><span style="font-family: monospace; font-size: 1.3em; font-weight:bold;">${item.uid}</span>${plateDisplay}</div>
+                        <form method="POST" action="{{ url_for('manage_badges') }}" style="margin: 0;"><input type="hidden" name="action" value="del"><input type="hidden" name="uid" value="${item.uid}"><button type="submit" style="background: #fff; border: 1px solid #dc3545; color: #dc3545; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">Supprimer</button></form></li>`;
+                });
+                html += '</ul>';
+                container.innerHTML = html;
+            }
+        } catch (error) {}
+    }
+
+    refreshBadges();
+    setInterval(refreshBadges, 3000);
+</script>
+
+</body>
+</html>

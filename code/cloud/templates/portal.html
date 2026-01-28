@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paiement Parking</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
+        h1 { color: #2d3e50; margin-bottom: 20px; }
+        input { width: 100%; padding: 15px; font-size: 1.2rem; border: 2px solid #ddd; border-radius: 10px; text-align: center; margin-bottom: 20px; box-sizing: border-box; text-transform: uppercase;}
+        button { width: 100%; padding: 15px; font-size: 1.2rem; background: #007bff; color: white; border: none; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 20px; display: none; }
+        .price-tag { font-size: 2.5rem; color: #28a745; font-weight: bold; margin: 10px 0; }
+        .error { color: red; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🅿️ Paiement Parking</h1>
+    <p>Veuillez saisir votre plaque d'immatriculation :</p>
+    
+    <input type="text" id="plate" placeholder="EX: AA-123-BB" />
+    <button onclick="checkPrice()" id="btn-check">Voir le montant</button>
+
+    <div id="result" class="result">
+        <p>Montant à régler :</p>
+        <div class="price-tag" id="price-display">-- €</div>
+        <a id="pay-link" href="#" style="text-decoration:none;">
+            <button style="background-color: #28a745;">💳 Payer maintenant</button>
+        </a>
+    </div>
+    <p id="error-msg" class="error"></p>
+</div>
+
+<script>
+    async function checkPrice() {
+        const plate = document.getElementById('plate').value;
+        const btn = document.getElementById('btn-check');
+        const errorMsg = document.getElementById('error-msg');
+        const resultDiv = document.getElementById('result');
+        
+        if(!plate) return;
+
+        btn.innerText = "Recherche...";
+        errorMsg.innerText = "";
+        resultDiv.style.display = "none";
+
+        try {
+            const res = await fetch('/api/get_payment_link', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ plate: plate })
+            });
+            const data = await res.json();
+
+            if (data.status === 'ok') {
+                document.getElementById('price-display').innerText = data.price + " €";
+                document.getElementById('pay-link').href = data.url; // Le lien Stripe magique
+                resultDiv.style.display = "block";
+                btn.style.display = "none"; // On cache le premier bouton
+            } else if (data.status === 'free') {
+                errorMsg.style.color = "green";
+                errorMsg.innerText = "✅ C'est gratuit ! Vous pouvez sortir.";
+            } else {
+                errorMsg.style.color = "red";
+                errorMsg.innerText = data.message;
+            }
+        } catch (e) {
+            errorMsg.innerText = "Erreur de connexion";
+        } finally {
+            btn.innerText = "Voir le montant";
+        }
+    }
+</script>
+
+</body>
+</html>

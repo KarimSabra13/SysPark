@@ -1,0 +1,17 @@
+[Unit]
+Description=Service Bandeau LED
+After=multi-user.target network.target
+
+[Service]
+Type=simple
+# PAUSE DE 15 SECONDES POUR LAISSER LE SPI SE CALMER
+ExecStartPre=/bin/sleep 15
+ExecStart=/usr/bin/python3 /opt/edgeai-gst-apps/bandeau_led.py
+Restart=always
+RestartSec=5
+User=root
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

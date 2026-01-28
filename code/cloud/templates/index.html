@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tableau de bord BeagleBone</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+
+<body>
+
+  <header>
+  <h1>Tableau de bord BeagleBone</h1>
+
+  {% if session.get('username') %}
+    <div style="margin-top: 1em; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; align-items: center;">
+      <a href="{{ url_for('manage_badges') }}"
+         style="padding: 10px 20px; background-color: #007bff; color: white; border-radius: 8px; text-decoration: none;">
+         🪪 Gérer les badges
+      </a>
+      <a href="{{ url_for('stats_page') }}"
+         style="padding: 10px 20px; background-color: #28a745; color: white; border-radius: 8px; text-decoration: none;">
+         📈 Statistiques
+      </a>
+      <a href="{{ url_for('parking_sessions') }}"
+         style="padding: 10px 20px; background-color: #6f42c1; color: white; border-radius: 8px; text-decoration: none;">
+         Sessions parking
+      </a>
+      <a href="{{ url_for('manage_tarifs') }}"
+         style="padding: 10px 20px; background-color: #ff9800; color: white; border-radius: 8px; text-decoration: none;">
+         💰 Tarifs
+      </a>
+    </div>
+  {% endif %}
+
+  <a href="{{ url_for('logout') }}" class="logout-btn">Se déconnecter</a>
+</header>
+
+  <main class="dashboard">
+    <div class="dash-col">
+    <div class="card camera">
+  <h2>Caméra</h2>
+
+  <div class="camera-grid">
+
+    <div id="tile-cam1" class="camera-tile" style="position: relative;">
+      <div class="camera-label" style="background: rgba(0, 128, 0, 0.7);">🎥 ENTRÉE (Cam 1)</div>
+      <div class="video-wrapper">
+        <img id="img-cam1" src="" class="camera-img" alt="Caméra 1" />
+              
+        <div class="click-zone"
+             onclick="toggleZoom('tile-cam1')" 
+             style="position: absolute; top:0; left:0; width:100%; height:100%; cursor: zoom-in; z-index: 10;">
+        </div>
+
+        <div class="plate-overlay">
+            <div class="plate-label">Dernière :</div>
+            <div id="last_plate_cam1" class="plate-number">-- --- --</div>
+            <img id="cam1_proof" class="plate-img" src="">
+        </div>
+        <div class="cam-controls">
+            <div class="pad-row"><button onmousedown="moveCam(event, 'cam1', 'up')">▲</button></div>
+            <div class="pad-row">
+                <button onmousedown="moveCam(event, 'cam1', 'left')">◀</button>
+                <button onmousedown="moveCam(event, 'cam1', 'down')">▼</button>
+                <button onmousedown="moveCam(event, 'cam1', 'right')">▶</button>
+            </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="tile-cam2" class="camera-tile" style="position: relative;">
+      <div class="camera-label" style="background: rgba(200, 0, 0, 0.7);">🎥 SORTIE (Cam 2)</div>
+      <div class="video-wrapper">
+        <img id="img-cam2" src="" class="camera-img" alt="Caméra 2" />
+              
+        <div class="click-zone"
+             onclick="toggleZoom('tile-cam2')" 
+             style="position: absolute; top:0; left:0; width:100%; height:100%; cursor: zoom-in; z-index: 10;">
+        </div>
+
+        <div class="plate-overlay">
+            <div class="plate-label">Dernière :</div>
+            <div id="last_plate_cam2" class="plate-number">-- --- --</div>
+            <img id="cam2_proof" class="plate-img" src="">
+        </div>
+        <div class="cam-controls">
+            <div class="pad-row"><button onmousedown="moveCam(event, 'cam2', 'up')">▲</button></div>
+            <div class="pad-row">
+                <button onmousedown="moveCam(event, 'cam2', 'left')">◀</button>
+                <button onmousedown="moveCam(event, 'cam2', 'down')">▼</button>
+                <button onmousedown="moveCam(event, 'cam2', 'right')">▶</button>
+            </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+    <div class="card controle">
+      <h2>Contrôle à distance</h2>
+      <div class="controle-section">
+        <div class="controle-zone">
+          <h3>🚧 Barrière Entrée</h3>
+          <div class="btn-group">
+            <button class="btn-action" onclick="sendCmd('barriere_entree', '100')">🟢 Ouvrir</button>
+            <button class="btn-action" onclick="sendCmd('barriere_entree', '000')">🔴 Fermer</button>
+          </div>
+        </div>
+        <div class="controle-zone">
+          <h3>🚧 Barrière Sortie</h3>
+          <div class="btn-group">
+            <button class="btn-action" onclick="sendCmd('barriere_sortie', '100')">🟢 Ouvrir</button>
+            <button class="btn-action" onclick="sendCmd('barriere_sortie', '000')">🔴 Fermer</button>
+          </div>
+        </div>
+        <div class="controle-zone">
+          <h3>🛗 Ascenseur</h3>
+          <div class="btn-group">
+            <button class="btn-etage" onclick="sendCmd('ascenseur', 'RDC')">RDC</button>
+            <button class="btn-etage" onclick="sendCmd('ascenseur', 'ETAGE1')">1er</button>
+            <button class="btn-etage" onclick="sendCmd('ascenseur', 'ETAGE2')">2e</button>
+          </div>
+          <div class="etat-ascenseur"><span>📍 <strong id="etat-ascenseur">—</strong></span></div>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <div class="dash-col">
+    <div class="card energie">
+      <h2>Gestion d’énergie</h2>
+      <p>En attente...</p>
+    </div>
+
+    <div class="card parking">
+      <h2>Parking</h2>
+      <p style="font-size: 1.2em;">
+        <strong id="parking-count">{{ parking_count or 0 }}</strong> / 10 places occupées
+      </p>
+      <div style="width: 100%; background: #ddd; height: 10px; border-radius: 5px; margin: 10px 0; overflow: hidden;">
+         <div id="parking-bar" style="height: 100%; width: 0%; background: #28a745; transition: width 0.5s;"></div>
+      </div>
+      <p style="opacity:0.7;" id="parking-count-at"></p>
+      <div style="margin-top: 10px;">
+        <a href="{{ url_for('parking_sessions') }}" style="padding: 8px 14px; background-color: #6f42c1; color: white; border-radius: 8px; text-decoration: none;">Voir le détail</a>
+      </div>
+
+      <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
+      <h3 style="font-size: 1em; color: #555;">Correction Manuelle</h3>
+      <div style="display: flex; justify-content: space-around; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 8px;">
+          <button onclick="adjustCount('dec')" style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1.2em;" title="Retirer une place occupée">➖</button>
+          <span style="font-size: 0.9em; color: #666;">Ajuster Compteur</span>
+          <button onclick="adjustCount('inc')" style="padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1.2em;" title="Ajouter une place occupée">➕</button>
+      </div>
+      </div>
+
+    <div class="card affichage">
+      <h2>Gestion d’affichage</h2>
+      <div class="meteo-section">
+        {% if meteo and meteo.temperature %}
+          <h2 style="color:#00aaff;">Météo — {{ meteo.ville }}</h2>
+          <p>{{ meteo.description }}</p>
+          <p>🌡️ Température : {{ meteo.temperature }} °C</p>
+          <p>💧 Humidité : {{ meteo.humidite }} %</p>
+          <p>💨 Vent : {{ meteo.vent }} km/h</p>
+          <p>🌤️ Prévision : {{ meteo.prevision }} °C</p>
+          <p>{{ meteo.pluie }}</p>
+          <p>🌿 Qualité de l’air : {{ meteo.air }}</p>
+          <p>🫁 CO₂ : {{ meteo.co2 }} ppm</p>
+        {% else %}
+          <p style="opacity:0.6;">Aucune donnée météo disponible</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  </main>
+
+  <script>
+
+    // ==========================================
+    // 🎥 GESTION FLUX DIRECT (Tailscale) + NETTOYAGE
+    // ==========================================
+      
+    // Tes URLs directes (Tailscale)
+    const CAM1_URL = "https://beagle-final.tail2fb2e4.ts.net/mjpeg/cam1";
+    const CAM2_URL = "https://beagle-final.tail2fb2e4.ts.net/mjpeg/cam2";
+
+    function startStreams() {
+        const ts = new Date().getTime(); // Numéro unique
+        const img1 = document.getElementById('img-cam1');
+        const img2 = document.getElementById('img-cam2');
+
+        // On ajoute ?t=... pour forcer une NOUVELLE connexion propre
+        if (img1) img1.src = CAM1_URL + "?t=" + ts;
+        if (img2) img2.src = CAM2_URL + "?t=" + ts;
+    }
+
+    function stopStreams() {
+        const img1 = document.getElementById('img-cam1');
+        const img2 = document.getElementById('img-cam2');
+        
+        // C'est ICI qu'on sauve la BeagleBone : on coupe le flux
+        if (img1) { img1.src = ""; img1.removeAttribute("src"); }
+        if (img2) { img2.src = ""; img2.removeAttribute("src"); }
+    }
+
+    // Démarrer quand la page s'affiche
+    window.addEventListener('load', startStreams);
+
+    // Arrêter quand on quitte la page (clic sur un lien ou fermeture)
+    window.addEventListener('beforeunload', stopStreams);
+    window.addEventListener('pagehide', stopStreams);
+    // --- GESTION CAMÉRAS (AJAX) ---
+    async function moveCam(event, camId, direction) {
+      event.stopPropagation(); 
+      console.log(`Commande mouvement : ${camId} vers ${direction}`);
+      try {
+        await fetch('/api/camera/move', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cam_id: camId, direction: direction })
+        });
+      } catch (err) { console.error("Erreur commande caméra", err); }
+    }
+
+    function toggleZoom(tileId) {
+      const tile = document.getElementById(tileId);
+      tile.classList.toggle('zoomed');
+      if (tile.classList.contains('zoomed')) {
+        document.body.classList.add('mode-plein-ecran');
+      } else {
+        document.body.classList.remove('mode-plein-ecran');
+      }
+    }
+
+    async function sendCmd(cible, commande) {
+      try {
+        const res = await fetch('/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cible, commande })
+        });
+        const data = await res.json();
+        if (data.status === "ok") console.log("Commande envoyée :", cible, commande);
+        else alert("Erreur : " + (data.error || "échec"));
+      } catch (err) { alert("Erreur réseau : " + err); }
+    }
+
+    // 👇👇👇 AJOUT : FONCTION JS POUR CORRECTION COMPTEUR 👇👇👇
+    function adjustCount(action) {
+        fetch('/api/admin/adjust_count', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({action: action})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.status === 'error') {
+                alert(data.message);
+            } else {
+                console.log("Compteur ajusté. Nouveau compte : " + data.new_count);
+                // Pas besoin de recharger la page, le Socket.IO mettra à jour l'affichage
+            }
+        })
+        .catch(err => alert("Erreur communication serveur"));
+    }
+    // 👆👆👆 FIN AJOUT 👆👆👆
+
+    // --- TEMPS RÉEL (Socket.IO) ---
+    const socket = io();
+    socket.on('connect', () => console.log("Connecté au temps réel ! ⚡"));
+     
+    // Mise à jour nombre de places
+    socket.on('parking_update', (data) => {
+        updateDisplay(data.count, data.capacity, data.last_update);
+    });
+
+    // ==========================================
+    // 📸 GESTION ÉVÉNEMENT PLAQUE + PHOTO (VERSION DEBUG)
+    // ==========================================
+    socket.on('parking_event', (msg) => {
+        console.log("⚡ SOCKET REÇU BRUT :", msg);
+
+        // Si msg est une string (ça arrive parfois), on parse
+        let data = msg;
+        if (typeof msg === "string") {
+            try { data = JSON.parse(msg); } catch(e) { console.error("Erreur parsing JSON", e); }
+        }
+
+        if (data && data.meta) {
+            console.log("🔍 Données META :", data.meta);
+            
+            // On nettoie l'ID (au cas où ce soit "cam2" au lieu de "2")
+            // On ne garde que le dernier chiffre
+            let rawId = String(data.meta.cam_id);
+            let cleanId = rawId.replace("cam", "").replace("_", "").trim(); 
+            
+            console.log("🎯 ID Nettoyé :", cleanId);
+
+            // 1. Mise à jour du TEXTE
+            const textId = "last_plate_cam" + cleanId;
+            const plateEl = document.getElementById(textId);
+            if (plateEl) {
+                console.log("✅ Element Texte trouvé :", textId);
+                plateEl.innerText = data.meta.plate;
+                plateEl.style.color = "#00ff00"; // Flash Vert
+                setTimeout(() => { plateEl.style.color = "#fff"; }, 2000);
+            } else {
+                console.warn("❌ Element Texte INTROUVABLE :", textId);
+            }
+
+            // 2. Mise à jour de l'IMAGE
+            if (data.meta.image) {
+                const imgId = "cam" + cleanId + "_proof";
+                const imgEl = document.getElementById(imgId);
+                
+                if (imgEl) {
+                    console.log("✅ Element Image trouvé :", imgId);
+                    imgEl.src = "data:image/jpeg;base64," + data.meta.image;
+                    imgEl.style.display = "block"; 
+                } else {
+                    console.warn("❌ Element Image INTROUVABLE :", imgId);
+                }
+            } else {
+                console.log("⚠️ Pas d'image dans le paquet");
+            }
+        }
+    });
+    // ==========================================
+
+
+    function updateDisplay(count, capacity, timeStr) {
+        const el = document.getElementById('parking-count');
+        const at = document.getElementById('parking-count-at');
+        const bar = document.getElementById('parking-bar');
+        if (el) el.textContent = count;
+        if (bar && capacity > 0) {
+            let pct = (count / capacity) * 100;
+            if(pct > 100) pct = 100;
+            bar.style.width = pct + "%";
+            if (count >= capacity) bar.style.backgroundColor = "#dc3545";
+            else if (count >= capacity * 0.8) bar.style.backgroundColor = "#ffc107";
+            else bar.style.backgroundColor = "#28a745";
+        }
+        if (at && timeStr) at.textContent = "Dernier mouvement : " + timeStr;
+    }
+
+    async function initParkingData() {
+        try {
+            const res = await fetch('/api/parking/count');
+            const data = await res.json();
+            updateDisplay(data.count, data.capacity, data.at);
+        } catch(e) { console.warn(e); }
+    }
+
+    // Refresh Météo & Ascenseur (Intervalles classiques)
+    async function refreshEtatAscenseur() {
+      try {
+        const res = await fetch('/etat/ascenseur');
+        const data = await res.json();
+        const etat = document.getElementById('etat-ascenseur');
+        if (data && data.current !== undefined) {
+          const noms = ["RDC", "1er", "2e"];
+          etat.textContent = "Étage actuel : " + (noms[data.current] ?? "?");
+        }
+      } catch (err) { }
+    }
+    async function refreshMeteo() {
+      try {
+        const response = await fetch('/meteo');
+        const data = await response.json();
+        const meteoSection = document.querySelector('.meteo-section');
+        if (!meteoSection) return;
+        if (data && data.temperature !== undefined) {
+          meteoSection.innerHTML = `
+            <h2 style="color:#00aaff;">Météo — ${data.ville ?? "Inconnue"}</h2>
+            <p>${data.description ?? ""}</p>
+            <p>🌡️ Température : ${data.temperature ?? "--"} °C</p>
+            <p>💧 Humidité : ${data.humidite ?? "--"} %</p>
+            <p>💨 Vent : ${data.vent ?? "--"} km/h</p>
+            <p>🌤️ Prévision : ${data.prevision ?? "--"} °C</p>
+            <p>${data.pluie ?? ""}</p>
+            <p>🌿 Qualité de l’air : ${data.air ?? "--"}</p>
+            <p>🫁 CO₂ : ${data.co2 ?? "--"} ppm</p>
+          `;
+        }
+      } catch (error) {}
+    }
+
+    initParkingData();
+    refreshMeteo(); setInterval(refreshMeteo, 60000);
+    refreshEtatAscenseur(); setInterval(refreshEtatAscenseur, 5000);
+
+  </script>
+</body>
+</html>

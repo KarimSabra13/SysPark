@@ -1,0 +1,16 @@
+[Unit]
+Description=Simple MQTT broker pour parking-server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/edgeai-gst-apps
+ExecStart=/usr/bin/python3 /opt/edgeai-gst-apps/simple_broker.py
+Restart=always
+RestartSec=5
+Environment="PYTHONUNBUFFERED=1"
+
+[Install]
+WantedBy=multi-user.target
+

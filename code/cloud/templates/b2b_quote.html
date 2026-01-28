@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>B2B • Simulateur de parking intelligent</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="b2b-body">
+  <header class="b2b-header">
+    <div class="b2b-header-inner">
+      <div class="b2b-brand">
+        <div class="b2b-logo">🅿️</div>
+        <div>
+          <div class="b2b-brand-title">ParkingSYS</div>
+          <div class="b2b-brand-sub">B2B • Configurateur & estimation</div>
+        </div>
+      </div>
+
+      <div class="b2b-actions">
+        <a class="b2b-link" href="{{ url_for('login') }}">Connexion Admin</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="b2b-wrap">
+    <div class="b2b-grid">
+      <!-- LEFT: FORM -->
+      <section class="b2b-card">
+        <h2>Infos client</h2>
+
+        <div class="b2b-row">
+          <div class="b2b-field">
+            <label>Organisation</label>
+            <input id="company_name" placeholder="Ex: Hôpital Saint-X" />
+          </div>
+          <div class="b2b-field">
+            <label>Email</label>
+            <input id="email" type="email" placeholder="contact@..." />
+          </div>
+        </div>
+
+        <div class="b2b-row">
+          <div class="b2b-field">
+            <label>Type de site</label>
+            <select id="site_type">
+              <option value="hospital">Hôpital</option>
+              <option value="mall">Centre commercial</option>
+              <option value="office">Immeuble / bureaux</option>
+              <option value="residential">Résidentiel privé</option>
+              <option value="public">Parking public</option>
+              <option value="other">Autre</option>
+            </select>
+          </div>
+          <div class="b2b-field">
+            <label>Pays / Ville (optionnel)</label>
+            <input id="location" placeholder="Ex: Lyon, FR" />
+          </div>
+        </div>
+
+        <div class="b2b-sep"></div>
+
+        <h2>Dimensionnement</h2>
+
+        <div class="b2b-row">
+          <div class="b2b-field">
+            <label>Nombre de places</label>
+            <input id="places" type="number" min="1" value="120" />
+          </div>
+          <div class="b2b-field">
+            <label>Entrées / Sorties (barrières)</label>
+            <select id="lanes">
+              <option value="1">1 entrée + 1 sortie</option>
+              <option value="2" selected>2 entrées + 2 sorties</option>
+              <option value="3">3 entrées + 3 sorties</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="b2b-row">
+          <div class="b2b-field">
+            <label>Capteurs d’occupation (nb)</label>
+            <input id="sensors_count" type="number" min="0" value="120" />
+            <div class="b2b-hint">Souvent 1 capteur par place.</div>
+          </div>
+          <div class="b2b-field">
+            <label>Type capteur</label>
+            <select id="sensor_type">
+              <option value="ground">Sol (magnétique / radar)</option>
+              <option value="overhead">Plafond (ultrasons / IR)</option>
+              <option value="camera_occupancy">Caméras (occupation par zone)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="b2b-row">
+          <div class="b2b-field">
+            <label>Caméras ANPR (plaques)</label>
+            <input id="anpr_cams" type="number" min="0" value="2" />
+            <div class="b2b-hint">Généralement entrée + sortie.</div>
+          </div>
+          <div class="b2b-field">
+            <label>Afficheurs (places libres, messages)</label>
+            <input id="displays" type="number" min="0" value="1" />
+          </div>
+        </div>
+
+        <div class="b2b-sep"></div>
+
+        <h2>Tarification client final</h2>
+
+        <div class="b2b-row">
+          <div class="b2b-field">
+            <label>Format</label>
+            <select id="billing_model">
+              <option value="hourly" selected>Horaire</option>
+              <option value="annual">Abonnement annuel</option>
+              <option value="lifetime">Paiement unique (à vie)</option>
+            </select>
+          </div>
+          <div class="b2b-field">
+            <label>Taux (€)</label>
+            <input id="rate" type="number" min="0" step="0.1" value="2.0" />
+            <div class="b2b-hint" id="rate_hint">€/heure</div>
+          </div>
+        </div>
+
+        <div class="b2b-row">
+          <div class="b2b-field">
+            <label>Occupation moyenne (%)</label>
+            <input id="occupancy" type="number" min="0" max="100" value="55" />
+          </div>
+          <div class="b2b-field">
+            <label id="usage_label">Heures payées / jour / place</label>
+            <input id="usage" type="number" min="0" step="0.1" value="2.5" />
+          </div>
+        </div>
+
+        <div class="b2b-sep"></div>
+
+        <h2>Sécurité & intégrations</h2>
+
+        <div class="b2b-row">
+          <div class="b2b-field">
+            <label>Niveau de sécurité</label>
+            <select id="security_level">
+              <option value="basic">Basic</option>
+              <option value="standard" selected>Standard</option>
+              <option value="high">High (audit, durcissement, options avancées)</option>
+            </select>
+          </div>
+          <div class="b2b-field">
+            <label>Mode d’hébergement</label>
+            <select id="hosting">
+              <option value="cloud" selected>Cloud</option>
+              <option value="hybrid">Hybride</option>
+              <option value="onprem">On-prem</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="b2b-row">
+          <div class="b2b-field">
+            <label>Intégrations</label>
+            <select id="integrations">
+              <option value="none">Aucune</option>
+              <option value="api" selected>API / Webhooks</option>
+              <option value="erp">ERP / SI (connecteurs)</option>
+              <option value="sso">SSO (SAML/OIDC)</option>
+            </select>
+          </div>
+          <div class="b2b-field">
+            <label>Prix électricité (€/kWh)</label>
+            <input id="kwh_price" type="number" min="0" step="0.01" value="0.20" />
+          </div>
+        </div>
+
+        <div class="b2b-row">
+          <button class="b2b-btn" id="btn_calc">Calculer l’estimation</button>
+          <button class="b2b-btn-secondary" id="btn_copy" type="button">Copier le résumé</button>
+        </div>
+
+        <div class="b2b-note">
+          Estimation indicative (pré-étude). Une visite site permet d’ajuster réseau, génie civil, contraintes caméra, etc.
+        </div>
+      </section>
+
+      <!-- RIGHT: SUMMARY -->
+      <aside class="b2b-card b2b-sticky">
+        <h2>Estimation</h2>
+
+        <div id="status" class="b2b-status">Remplissez le formulaire puis cliquez “Calculer”.</div>
+
+        <div class="b2b-kpis" id="kpis" style="display:none;">
+          <div class="b2b-kpi">
+            <div class="b2b-kpi-label">Budget initial (CAPEX)</div>
+            <div class="b2b-kpi-value" id="capex">—</div>
+          </div>
+          <div class="b2b-kpi">
+            <div class="b2b-kpi-label">Maintenance mensuelle</div>
+            <div class="b2b-kpi-value" id="opex">—</div>
+          </div>
+          <div class="b2b-kpi">
+            <div class="b2b-kpi-label">Puissance moyenne</div>
+            <div class="b2b-kpi-value" id="power">—</div>
+          </div>
+          <div class="b2b-kpi">
+            <div class="b2b-kpi-label">Déploiement estimé</div>
+            <div class="b2b-kpi-value" id="days">—</div>
+          </div>
+        </div>
+
+        <div class="b2b-breakdown" id="breakdown" style="display:none;">
+          <h3>Détails</h3>
+          <div class="b2b-lines" id="lines"></div>
+
+          <h3 style="margin-top:18px;">Projection revenus (mensuel)</h3>
+          <div class="b2b-lines">
+            <div class="b2b-line">
+              <div>Revenus estimés</div>
+              <div class="b2b-strong" id="revenue">—</div>
+            </div>
+            <div class="b2b-line">
+              <div>Coût énergie (estim.)</div>
+              <div id="energy_cost">—</div>
+            </div>
+            <div class="b2b-line">
+              <div>Profit estimé (rev - maint - énergie)</div>
+              <div class="b2b-strong" id="profit">—</div>
+            </div>
+          </div>
+        </div>
+
+        <details class="b2b-assumptions">
+          <summary>Hypothèses utilisées</summary>
+          <ul>
+            <li>Capteurs et caméras = consommation moyenne, pas le pic.</li>
+            <li>Installation = estimation par lots, hors gros génie civil.</li>
+            <li>Maintenance = % CAPEX + connectivité.</li>
+            <li>Revenus = basé sur occupation et usage déclarés.</li>
+          </ul>
+        </details>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+
+    function fmtEUR(x) {
+      const n = Number(x || 0);
+      return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
+    }
+    function fmtW(x) {
+      const n = Number(x || 0);
+      if (n >= 1000) return (n/1000).toFixed(2) + " kW";
+      return n.toFixed(0) + " W";
+    }
+
+    function updateRateLabels() {
+      const model = el("billing_model").value;
+      const hint = el("rate_hint");
+      const usageLabel = el("usage_label");
+      const usage = el("usage");
+
+      if (model === "hourly") {
+        hint.textContent = "€/heure";
+        usageLabel.textContent = "Heures payées / jour / place";
+        usage.value = usage.value || "2.5";
+      } else if (model === "annual") {
+        hint.textContent = "€/an (par abonné)";
+        usageLabel.textContent = "Nombre d’abonnés (estim.)";
+        usage.value = usage.value || "200";
+      } else {
+        hint.textContent = "€ (paiement unique)";
+        usageLabel.textContent = "Nombre de clients (paiement unique / an)";
+        usage.value = usage.value || "150";
+      }
+    }
+
+    async function compute() {
+      el("status").textContent = "Calcul en cours…";
+
+      const payload = {
+        company_name: el("company_name").value || "",
+        email: el("email").value || "",
+        site_type: el("site_type").value,
+        location: el("location").value || "",
+
+        places: Number(el("places").value || 0),
+        lanes: Number(el("lanes").value || 1),
+        sensors_count: Number(el("sensors_count").value || 0),
+        sensor_type: el("sensor_type").value,
+        anpr_cams: Number(el("anpr_cams").value || 0),
+        displays: Number(el("displays").value || 0),
+
+        billing_model: el("billing_model").value,
+        rate: Number(el("rate").value || 0),
+        occupancy: Number(el("occupancy").value || 0),
+        usage: Number(el("usage").value || 0),
+
+        security_level: el("security_level").value,
+        hosting: el("hosting").value,
+        integrations: el("integrations").value,
+
+        kwh_price: Number(el("kwh_price").value || 0.20),
+      };
+
+      try {
+        const res = await fetch("/api/b2b/estimate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok || data.status !== "ok") {
+          el("status").textContent = data.message || "Erreur pendant le calcul.";
+          return;
+        }
+
+        const q = data.estimate;
+
+        el("kpis").style.display = "";
+        el("breakdown").style.display = "";
+        el("status").textContent = "✅ Estimation calculée.";
+
+        el("capex").textContent = fmtEUR(q.capex_total);
+        el("opex").textContent = fmtEUR(q.maintenance_month);
+        el("power").textContent = fmtW(q.power_w_avg) + " • " + (q.energy_kwh_month.toFixed(1) + " kWh/mois");
+        el("days").textContent = q.install_days + " jours";
+
+        el("revenue").textContent = fmtEUR(q.revenue_month);
+        el("energy_cost").textContent = fmtEUR(q.energy_cost_month);
+        el("profit").textContent = fmtEUR(q.profit_month);
+
+        const lines = el("lines");
+        lines.innerHTML = "";
+        for (const item of q.breakdown_lines) {
+          const row = document.createElement("div");
+          row.className = "b2b-line";
+          row.innerHTML = `<div>${item.label}</div><div>${fmtEUR(item.value)}</div>`;
+          lines.appendChild(row);
+        }
+
+        // Keep a text summary for copy
+        window.__B2B_SUMMARY__ = q.summary_text;
+
+      } catch (e) {
+        el("status").textContent = "Erreur réseau.";
+      }
+    }
+
+    function copySummary() {
+      const t = window.__B2B_SUMMARY__ || "Aucune estimation à copier.";
+      navigator.clipboard.writeText(t);
+      el("status").textContent = "📋 Résumé copié.";
+    }
+
+    el("billing_model").addEventListener("change", updateRateLabels);
+    el("btn_calc").addEventListener("click", (e) => { e.preventDefault(); compute(); });
+    el("btn_copy").addEventListener("click", (e) => { e.preventDefault(); copySummary(); });
+
+    updateRateLabels();
+  </script>
+</body>
+</html>

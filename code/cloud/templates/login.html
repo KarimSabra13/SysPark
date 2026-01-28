@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connexion</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="login-body">
+  <div class="login-container">
+    <h1>Connexion Admin</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div class="error">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('login') }}">
+      <input type="text" name="username" placeholder="Utilisateur" autocomplete="username" required />
+      <input type="password" name="password" placeholder="Mot de passe" autocomplete="current-password" required />
+      <button type="submit">Se connecter</button>
+    </form>
+
+    <div class="login-divider"><span>ou</span></div>
+
+    <a class="b2b-cta" href="{{ url_for('b2b.b2b_page') }}">
+      <div class="b2b-cta-title">B2B • Simulateur de projet</div>
+      <div class="b2b-cta-sub">
+        Hôpital, centre commercial, immeuble privé… estimez budget, énergie, délai, maintenance, revenus.
+      </div>
+      <div class="b2b-cta-btn">Accéder au configurateur →</div>
+    </a>
+  </div>
+</body>
+</html>

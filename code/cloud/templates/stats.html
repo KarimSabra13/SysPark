@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Statistiques Parking</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <header>
+    <h1>📊 Statistiques & Revenus</h1>
+    <div style="margin-top: 1em;">
+      <a href="{{ url_for('dashboard') }}" 
+         style="padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 8px; text-decoration: none;">
+         ⬅️ Retour au tableau de bord
+      </a>
+    </div>
+  </header>
+
+  <main class="dashboard" style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+    
+    <div style="display: flex; gap: 20px; width: 100%; max-width: 800px; justify-content: center; flex-wrap: wrap;">
+        <div class="card" style="flex: 1; text-align: center; min-width: 200px; background-color: white; color: #333; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h3 style="margin-top: 0; color: #555;">Chiffre d'Affaires (7j)</h3>
+            <p id="total-revenue" style="font-size: 2.5em; font-weight: bold; color: #28a745; margin: 10px 0;">-- €</p>
+        </div>
+
+        <div class="card" style="flex: 1; text-align: center; min-width: 200px; background-color: white; color: #333; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h3 style="margin-top: 0; color: #555;">Taux d'occupation</h3>
+            <p id="occupation-rate" style="font-size: 2.5em; font-weight: bold; color: #007bff; margin: 10px 0;">-- %</p>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 20px; width: 100%; max-width: 1000px; flex-wrap: wrap; justify-content: center;">
+        <div class="card" style="flex: 2; min-width: 300px; background: white; color: #333; padding: 20px; border-radius: 12px;">
+            <h3>💰 Revenus par jour</h3>
+            <canvas id="revenueChart"></canvas>
+        </div>
+
+        <div class="card" style="flex: 1; min-width: 300px; background: white; color: #333; padding: 20px; border-radius: 12px;">
+            <h3>🚗 Places Disponibles</h3>
+            <canvas id="occupancyChart"></canvas>
+        </div>
+    </div>
+
+    <div style="width: 100%; max-width: 1000px;">
+        <div class="card" style="background: white; color: #333; padding: 20px; border-radius: 12px;">
+            <h3>📈 Évolution de l'occupation (24h)</h3>
+            <canvas id="historyChart" style="max-height: 300px;"></canvas>
+        </div>
+    </div>
+
+  </main>
+
+  <script>
+    async function loadStats() {
+        try {
+            // 1. Récupération des stats générales
+            const res = await fetch('/api/stats_data');
+            const data = await res.json();
+
+            // Mettre à jour les chiffres clés
+            const total = data.revenue.data.reduce((a, b) => a + b, 0);
+            document.getElementById('total-revenue').textContent = total.toFixed(2) + " €";
+
+            const totalSpots = data.occupancy.active + data.occupancy.free;
+            const rate = totalSpots > 0 ? Math.round((data.occupancy.active / totalSpots) * 100) : 0;
+            document.getElementById('occupation-rate').textContent = rate + " %";
+
+            // Graphique Barres (Revenus)
+            new Chart(document.getElementById('revenueChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.revenue.labels,
+                    datasets: [{
+                        label: 'Revenus (€)',
+                        data: data.revenue.data,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: { scales: { y: { beginAtZero: true } } }
+            });
+
+            // Graphique Donut (Occupation actuelle)
+            new Chart(document.getElementById('occupancyChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Occupées', 'Libres'],
+                    datasets: [{
+                        data: [data.occupancy.active, data.occupancy.free],
+                        backgroundColor: ['#dc3545', '#28a745'],
+                        hoverOffset: 4
+                    }]
+                }
+            });
+
+            // 2. Récupération de l'historique 24h (NOUVEAU)
+            const resHist = await fetch('/api/history');
+            const dataHist = await resHist.json();
+
+            new Chart(document.getElementById('historyChart'), {
+                type: 'line',
+                data: {
+                    labels: dataHist.labels,
+                    datasets: [{
+                        label: 'Voitures présentes',
+                        data: dataHist.data,
+                        borderColor: '#6f42c1',       // Violet sympa
+                        backgroundColor: 'rgba(111, 66, 193, 0.2)', // Fond violet transparent
+                        fill: true,
+                        tension: 0.4, // Courbe lissée
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            suggestedMax: 10, // Capacité max du parking
+                            ticks: { stepSize: 1 } 
+                        } 
+                    },
+                    plugins: {
+                        legend: { display: false } // Pas besoin de légende pour une seule ligne
+                    }
+                }
+            });
+
+        } catch (err) {
+            console.error("Erreur chargement stats:", err);
+        }
+    }
+
+    loadStats();
+  </script>
+</body>
+</html>
