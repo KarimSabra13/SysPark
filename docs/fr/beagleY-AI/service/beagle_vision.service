@@ -1,0 +1,17 @@
+[Unit]
+Description=Beagle Vision (Wrapper Shell)
+After=network.target video.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/edgeai-gst-apps
+
+# ON LANCE LE SCRIPT SHELL AU LIEU DE PYTHON DIRECTEMENT
+ExecStart=/bin/bash /opt/edgeai-gst-apps/start_vision.sh
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

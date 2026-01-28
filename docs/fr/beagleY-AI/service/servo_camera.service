@@ -1,0 +1,18 @@
+[Unit]
+Description=Service Servo Moteur Camera (MQTT)
+# C'est ici qu'on definit l'ordre de demarrage :
+After=network.target simple_broker.service mqtt_bridge.service
+# On s'assure que les services requis sont demandes :
+Wants=simple_broker.service mqtt_bridge.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/edgeai-gst-apps
+# L'option -u force python a ne pas bufferiser les logs (utile pour journalctl)
+ExecStart=/usr/bin/python3 -u servo_camera.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

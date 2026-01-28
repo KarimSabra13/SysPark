@@ -1,0 +1,16 @@
+[Unit]
+Description=MQTT bridge pour parking-server
+After=network-online.target simple_broker.service
+Wants=network-online.target simple_broker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/edgeai-gst-apps/serveur
+ExecStart=/opt/edgeai-gst-apps/venv/bin/python mqtt_bridge.py
+Restart=always
+RestartSec=5
+Environment="PYTHONUNBUFFERED=1"
+
+[Install]
+WantedBy=multi-user.target
+

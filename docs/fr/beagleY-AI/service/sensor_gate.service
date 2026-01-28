@@ -1,0 +1,15 @@
+[Unit]
+Description=Parking sensor gate (GPIO17 -> MQTT)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/edgeai-gst-apps
+ExecStart=/usr/bin/python3 /opt/edgeai-gst-apps/sensor_gate.py
+Restart=always
+RestartSec=2
+User=root
+
+[Install]
+WantedBy=multi-user.target
