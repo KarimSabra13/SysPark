@@ -1,0 +1,71 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.1 (lin64) Build 6140274 Wed May 21 22:58:25 MDT 2025
+| Date         : Thu Dec  4 15:14:53 2025
+| Host         : Karim running 64-bit Ubuntu 24.04.3 LTS
+| Command      : report_utilization -hierarchical -file nexys4ddr_utilization_hierarchical_synth.rpt
+| Design       : nexys4ddr
+| Device       : xc7a100tcsg324-1
+| Speed File   : -1
+| Design State : Synthesized
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++-------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+|                                          Instance                                         |                                        Module                                       | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs  | RAMB36 | RAMB18 | DSP Blocks |
++-------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+| nexys4ddr                                                                                 |                                                                               (top) |      14684 |      13514 |    1164 |    6 | 12959 |     44 |     17 |          8 |
+|   (nexys4ddr)                                                                             |                                                                               (top) |       4527 |       3799 |     724 |    4 |  4663 |     36 |      5 |          0 |
+|   VexRiscvLitexSmpCluster_Cc2_Iw64Is8192Iy2_Dw64Ds8192Dy2_ITs4DTs4_Ldw64_Cdma_Ood_Hb1     | VexRiscvLitexSmpCluster_Cc2_Iw64Is8192Iy2_Dw64Ds8192Dy2_ITs4DTs4_Ldw64_Cdma_Ood_Hb1 |      10157 |       9715 |     440 |    2 |  8296 |      8 |     12 |          8 |
+|     (VexRiscvLitexSmpCluster_Cc2_Iw64Is8192Iy2_Dw64Ds8192Dy2_ITs4DTs4_Ldw64_Cdma_Ood_Hb1) | VexRiscvLitexSmpCluster_Cc2_Iw64Is8192Iy2_Dw64Ds8192Dy2_ITs4DTs4_Ldw64_Cdma_Ood_Hb1 |        334 |        334 |       0 |    0 |  2159 |      0 |      0 |          0 |
+|     clint_logic                                                                           |                                                                            BmbClint |        171 |        171 |       0 |    0 |   229 |      0 |      0 |          0 |
+|     cores_0_cpu_logic_cpu                                                                 |                                                                            VexRiscv |       3187 |       3137 |      50 |    0 |  2303 |      4 |      6 |          4 |
+|       (cores_0_cpu_logic_cpu)                                                             |                                                                            VexRiscv |       1238 |       1190 |      48 |    0 |  1913 |      0 |      0 |          4 |
+|       IBusCachedPlugin_cache                                                              |                                                                InstructionCache_1_5 |        728 |        728 |       0 |    0 |   105 |      2 |      2 |          0 |
+|       dataCache_2                                                                         |                                                                       DataCache_1_6 |       1221 |       1219 |       2 |    0 |   285 |      2 |      4 |          0 |
+|         (dataCache_2)                                                                     |                                                                       DataCache_1_6 |       1058 |       1056 |       2 |    0 |   285 |      0 |      4 |          0 |
+|         ways_1_data                                                                       |                                                                        Ram_1w_1rs_8 |        136 |        136 |       0 |    0 |     0 |      1 |      0 |          0 |
+|     cores_1_cpu_logic_cpu                                                                 |                                                                          VexRiscv_1 |       3282 |       3232 |      50 |    0 |  2344 |      4 |      6 |          4 |
+|       (cores_1_cpu_logic_cpu)                                                             |                                                                          VexRiscv_1 |       1267 |       1219 |      48 |    0 |  1920 |      0 |      0 |          4 |
+|       IBusCachedPlugin_cache                                                              |                                                                  InstructionCache_1 |        730 |        730 |       0 |    0 |   105 |      2 |      2 |          0 |
+|       dataCache_2                                                                         |                                                                         DataCache_1 |       1285 |       1283 |       2 |    0 |   319 |      2 |      4 |          0 |
+|         (dataCache_2)                                                                     |                                                                         DataCache_1 |       1123 |       1121 |       2 |    0 |   319 |      0 |      4 |          0 |
+|         ways_1_data                                                                       |                                                                        Ram_1w_1rs_4 |        131 |        131 |       0 |    0 |     0 |      1 |      0 |          0 |
+|     customDebug_debugBridge_logic_debugger                                                |                                                                      SystemDebugger |         36 |         34 |       0 |    2 |    72 |      0 |      0 |          0 |
+|     dBridge_logic                                                                         |                                                                     BmbToLiteDram_1 |        739 |        643 |      96 |    0 |   120 |      0 |      0 |          0 |
+|       (dBridge_logic)                                                                     |                                                                     BmbToLiteDram_1 |        367 |        367 |       0 |    0 |    40 |      0 |      0 |          0 |
+|       io_input_unburstify                                                                 |                                                                       BmbUnburstify |         77 |         77 |       0 |    0 |    32 |      0 |      0 |          0 |
+|       io_output_rdata_fifo                                                                |                                                            StreamFifoLowLatency_3_2 |         57 |         13 |      44 |    0 |    12 |      0 |      0 |          0 |
+|         fifo                                                                              |                                                                      StreamFifo_8_3 |         57 |         13 |      44 |    0 |    12 |      0 |      0 |          0 |
+|       streamFifoLowLatency_4                                                              |                                                                StreamFifoLowLatency |        204 |        156 |      48 |    0 |    12 |      0 |      0 |          0 |
+|         fifo                                                                              |                                                                        StreamFifo_6 |        204 |        156 |      48 |    0 |    12 |      0 |      0 |          0 |
+|     dBusCoherent_bmb_arbiter                                                              |                                                                        BmbArbiter_1 |        212 |        212 |       0 |    0 |    19 |      0 |      0 |          0 |
+|       memory_arbiter                                                                      |                                                                     StreamArbiter_1 |        198 |        198 |       0 |    0 |     4 |      0 |      0 |          0 |
+|     dBusCoherent_bmb_syncRemover                                                          |                                                                      BmbSyncRemover |        268 |        222 |      46 |    0 |    15 |      0 |      0 |          0 |
+|       io_output_rsp_fifo                                                                  |                                                              StreamFifoLowLatency_2 |        266 |        220 |      46 |    0 |     8 |      0 |      0 |          0 |
+|         fifo                                                                              |                                                                        StreamFifo_7 |        266 |        220 |      46 |    0 |     8 |      0 |      0 |          0 |
+|     dBusNonCoherent_bmb_decoder                                                           |                                                                BmbDecoderOutOfOrder |        532 |        394 |     138 |    0 |   418 |      0 |      0 |          0 |
+|       (dBusNonCoherent_bmb_decoder)                                                       |                                                                BmbDecoderOutOfOrder |         32 |         32 |       0 |    0 |   268 |      0 |      0 |          0 |
+|       portsLogic_0_rspFifo                                                                |                                                 StreamFifoMultiChannelSharedSpace_1 |        205 |        153 |      52 |    0 |    56 |      0 |      0 |          0 |
+|       portsLogic_1_rspFifo                                                                |                                               StreamFifoMultiChannelSharedSpace_1_1 |        135 |         83 |      52 |    0 |    56 |      0 |      0 |          0 |
+|       sourceOrderingFifo                                                                  |                                                   StreamFifoMultiChannelSharedSpace |        160 |        126 |      34 |    0 |    38 |      0 |      0 |          0 |
+|     dBusNonCoherent_bmb_downSizer                                                         |                                                                  BmbDownSizerBridge |         82 |         82 |       0 |    0 |    36 |      0 |      0 |          0 |
+|     iBridge_logic                                                                         |                                                                       BmbToLiteDram |        409 |        361 |      48 |    0 |    95 |      0 |      0 |          0 |
+|       (iBridge_logic)                                                                     |                                                                       BmbToLiteDram |         90 |         90 |       0 |    0 |    31 |      0 |      0 |          0 |
+|       io_output_rdata_fifo                                                                |                                                              StreamFifoLowLatency_3 |        248 |        204 |      44 |    0 |    12 |      0 |      0 |          0 |
+|         fifo                                                                              |                                                                        StreamFifo_8 |        248 |        204 |      44 |    0 |    12 |      0 |      0 |          0 |
+|     peripheralBridge_logic                                                                |                                                                       BmbToWishbone |        479 |        479 |       0 |    0 |   119 |      0 |      0 |          0 |
+|     smp_exclusiveMonitor_logic                                                            |                                                                 BmbExclusiveMonitor |        211 |        211 |       0 |    0 |   188 |      0 |      0 |          0 |
+|       (smp_exclusiveMonitor_logic)                                                        |                                                                 BmbExclusiveMonitor |        107 |        107 |       0 |    0 |   182 |      0 |      0 |          0 |
+|       logic_exclusiveReadArbiter                                                          |                                                                     StreamArbiter_2 |         82 |         82 |       0 |    0 |     3 |      0 |      0 |          0 |
++-------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+
+
